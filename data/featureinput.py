@@ -49,8 +49,34 @@ def get_features():
     
     return features
 
-vowels = get_vowels()
 features = get_features()
+
+vowel_presets = {
+    'syllabic': '+',
+    'stress': '-',
+    'long': '-',
+    'consonantal': '-',
+    'sonorant': '+',
+    'continuant': '+',
+    'delayed release': '0',
+    'approximant': '+',
+    'tap': '-',
+    'trill': '-',
+    'lateral': '-',
+    'nasal': '-',
+    'voice': '+',
+    'spread glottis': '-',
+    'constricted glottis': '-',
+    'labiodental': '-',
+    'CORONAL': '-',
+    'anterior': '0',
+    'distributed': '0',
+    'strident': '0',
+    'DORSAL': '+'
+}
+
+def get_preset(feature):
+    return vowel_presets.get(feature, None)
 
 def fill_features(phone):
     print()
@@ -92,5 +118,5 @@ def fill_features(phone):
     with open('text.json', 'w+') as f:
         json.dump(dataset, f, indent=4, ensure_ascii=False)
 
-for phone in vowels:
+for phone in get_consonants():
     fill_features(phone)
