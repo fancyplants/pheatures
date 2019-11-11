@@ -7,7 +7,6 @@
       v-for="feature in activeFeatures"
       v-bind:key="feature"
       :feature="feature"
-      :deletable="true"
       @delete="removeActive"
     />
     <hr />
@@ -17,8 +16,14 @@
     <div :class="modalClass">
       <div class="modal-background"></div>
       <div class="modal-content box">
+        <h2 class="title notification is-info">{{ currentPhone }}</h2>
         <!-- Any other Bulma elements you want -->
-        <FeatureTag v-for="feature in modalInfo" v-bind:key="feature" :feature="feature" />
+        <FeatureTag
+          v-for="feature in modalInfo"
+          v-bind:key="feature"
+          :feature="feature"
+          @click="addActive"
+        />
       </div>
       <button @click="handleModalClose" class="modal-close is-large" aria-label="close"></button>
     </div>
@@ -45,6 +50,7 @@ export default Vue.extend({
     const found = ref([] as string[]);
     const activeFeatures = ref([] as string[]);
     const modalInfo = ref([] as string[]);
+    const currentPhone = ref("");
     const modalClass = computed(() => ({
       modal: true,
       "is-active": modalInfo.value.length > 0
@@ -60,6 +66,12 @@ export default Vue.extend({
 
     function removeActive(feature: string) {
       activeFeatures.value = activeFeatures.value.filter(f => f !== feature);
+    }
+
+    function addActive(feature: string) {
+      // close modal
+      modalInfo.value = [];
+      activeFeatures.value.push(feature);
     }
 
     async function handleSubmit(e: Event) {
@@ -95,12 +107,14 @@ export default Vue.extend({
 
         return value + feature;
       });
-      // TODO: make this prettier
+
       modalInfo.value = data;
+      currentPhone.value = phone;
     }
 
     function handleModalClose() {
       modalInfo.value = [];
+      currentPhone.value = "";
     }
 
     return {
@@ -112,7 +126,9 @@ export default Vue.extend({
       handlePhoneClick,
       modalClass,
       modalInfo,
-      handleModalClose
+      handleModalClose,
+      currentPhone,
+      addActive
     };
   }
 });
