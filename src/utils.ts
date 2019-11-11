@@ -41,34 +41,26 @@ function phoneHasFeatures(
 }
 
 export class Phones {
-  private data: Dataset | null = null;
-  private cachedFeatures: string[] | null = null;
+  private data: Dataset;
+  public readonly allFeatures: Set<string>;
 
-  public get isInit() {
-    return !!this.data;
-  }
-
-  public allFeatures() {
-    if (this.cachedFeatures) {
-      return this.cachedFeatures;
-    }
-    const data = this.getData();
+  private constructor(data: Dataset) {
+    this.data = data;
 
     const featureset = data[Object.keys(data)[0]];
-    this.cachedFeatures = Object.keys(featureset);
-    return this.cachedFeatures;
+    this.allFeatures = new Set(Object.keys(featureset));
   }
 
-  async init() {
+  static async getPhoneInstance() {
     const data = await request.get("/text.json");
     if (!isDataset(data.body)) {
       throw new Error("Not a dataset!");
     }
-    this.data = data.body;
+    return new Phones(data.body);
   }
 
   getPhones(features: string[]) {
-    const data = this.getData();
+    const { data } = this;
 
     return Object.keys(data).filter(phone =>
       phoneHasFeatures(data, phone, features)
@@ -76,18 +68,7 @@ export class Phones {
   }
 
   getFeatureset(phone: string) {
-    const data = this.getData();
-    return data[phone];
-  }
-
-  // available so that we can do a null check
-  private getData() {
-    const { data } = this;
-    if (data === null) {
-      throw new Error("Has not been initialized correctly!");
-    }
-
-    return data;
+    return this.data[phone];
   }
 }
 

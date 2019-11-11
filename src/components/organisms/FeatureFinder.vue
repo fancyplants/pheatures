@@ -31,7 +31,7 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import Vue, { PropType } from "vue";
 import { ref, watch, computed } from "@vue/composition-api";
 
 import FeatureTag from "@/components/atoms/FeatureTag.vue";
@@ -43,12 +43,15 @@ export default Vue.extend({
     FeatureTag,
     Phone
   },
-  setup() {
-    const phones = new Phones();
+  props: {
+    phones: Object as PropType<Phones>
+  },
+  setup(props) {
+    const { phones }: { phones: Phones } = props as any;
 
     const search = ref("");
     const found = ref([] as string[]);
-    const activeFeatures = ref([] as string[]);
+    const activeFeatures = ref([] as string[])
     const modalInfo = ref([] as string[]);
     const currentPhone = ref("");
     const modalClass = computed(() => ({
@@ -56,11 +59,7 @@ export default Vue.extend({
       "is-active": modalInfo.value.length > 0
     }));
 
-    watch(activeFeatures, async () => {
-      if (!phones.isInit) {
-        await phones.init();
-      }
-
+    watch(activeFeatures, () => {
       found.value = phones.getPhones(activeFeatures.value);
     });
 
@@ -71,28 +70,26 @@ export default Vue.extend({
     function addActive(feature: string) {
       // close modal
       modalInfo.value = [];
-      activeFeatures.value.push(feature);
+      if (!activeFeatures.value.includes(feature)) {
+        activeFeatures.value.push(feature);
+      }
     }
 
-    async function handleSubmit(e: Event) {
+    function handleSubmit(e: Event) {
       e.preventDefault();
       if (search.value.length < 1) {
         return;
       }
 
-      if (!phones.isInit) {
-        await phones.init();
-      }
-
-      const features = phones.allFeatures();
+      const features = phones.allFeatures;
 
       switch (search.value[0]) {
         case "+":
         case "-":
         case "0":
           const feat = search.value.substring(1);
-          if (features.includes(feat)) {
-            activeFeatures.value.push(search.value);
+          if (features.has(feat)) {
+            addActive(search.value);
           }
           break;
       }
