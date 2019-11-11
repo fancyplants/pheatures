@@ -1,6 +1,8 @@
 <template>
   <div>
-    <input v-model="text" class="input" @input="onChange" />
+    <input v-model="text" class="input" @input="onChange">
+      <span class="tag"></span>
+    </input>
     <h1>Text: {{ text }}</h1>
   </div>
 </template>
