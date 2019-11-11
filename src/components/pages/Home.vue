@@ -42,7 +42,7 @@ export default Vue.extend({
         state.phones = phones;
       })
       .catch((error) => {
-        console.error(error);
+        // TODO: possibly tell user error?
         state.homeState = "error";
       });
 
