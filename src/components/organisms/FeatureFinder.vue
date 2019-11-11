@@ -3,54 +3,52 @@
     <form @submit="handleSubmit">
       <input class="input" v-model="search" />
     </form>
-    <span :class="getClass(feature)" v-for="feature in activeFeatures" v-bind:key="feature">
-      {{ feature }}
-      <button class="delete" @click="removeActive(feature)"></button>
-    </span>
+    <FeatureTag
+      v-for="feature in activeFeatures"
+      v-bind:key="feature"
+      :feature="feature"
+      :deletable="true"
+      @delete="removeActive"
+    />
     <hr />
 
-    <span @click="handlePhoneClick(phone)" class="tag is-primary phone button" v-for="phone in found" v-bind:key="phone">{{ phone }}</span>
+    <Phone @click="handlePhoneClick" v-for="phone in found" v-bind:key="phone" :phone="phone" />
 
     <div :class="modalClass">
       <div class="modal-background"></div>
       <div class="modal-content box">
         <!-- Any other Bulma elements you want -->
-        <p>{{ modalInfo }}</p>
+        <FeatureTag v-for="feature in modalInfo" v-bind:key="feature" :feature="feature" />
       </div>
       <button @click="handleModalClose" class="modal-close is-large" aria-label="close"></button>
     </div>
   </div>
 </template>
 
-<style lang="scss" scoped>
-.phone {
-  font-size: 22px;
-  margin: 5px;
-}
-
-.feature {
-  margin: 4px;
-}
-</style>
-
 <script lang="ts">
 import Vue from "vue";
 import { ref, watch, computed } from "@vue/composition-api";
 
+import FeatureTag from "@/components/atoms/FeatureTag.vue";
+import Phone from "@/components/atoms/Phone.vue";
 import { Phones, getFeatures } from "@/utils.ts";
 
 export default Vue.extend({
+  components: {
+    FeatureTag,
+    Phone
+  },
   setup() {
+    const phones = new Phones();
+
     const search = ref("");
     const found = ref([] as string[]);
     const activeFeatures = ref([] as string[]);
-    const modalInfo = ref("");
+    const modalInfo = ref([] as string[]);
     const modalClass = computed(() => ({
       modal: true,
       "is-active": modalInfo.value.length > 0
     }));
-
-    const phones = new Phones();
 
     watch(activeFeatures, async () => {
       if (!phones.isInit) {
@@ -60,36 +58,30 @@ export default Vue.extend({
       found.value = phones.getPhones(activeFeatures.value);
     });
 
-    function getClass(feature: string) {
-      const normalClasses = "tag feature is-large ";
-      const val = feature[0];
-      switch (val) {
-        case "+":
-          return normalClasses + "is-success";
-
-        case "-":
-          return normalClasses + "is-danger";
-
-        default:
-          return normalClasses;
-      }
-    }
-
     function removeActive(feature: string) {
       activeFeatures.value = activeFeatures.value.filter(f => f !== feature);
     }
 
-    function handleSubmit(e: Event) {
+    async function handleSubmit(e: Event) {
       e.preventDefault();
       if (search.value.length < 1) {
         return;
       }
 
+      if (!phones.isInit) {
+        await phones.init();
+      }
+
+      const features = phones.allFeatures();
+
       switch (search.value[0]) {
         case "+":
         case "-":
         case "0":
-          activeFeatures.value.push(search.value);
+          const feat = search.value.substring(1);
+          if (features.includes(feat)) {
+            activeFeatures.value.push(search.value);
+          }
           break;
       }
 
@@ -104,18 +96,17 @@ export default Vue.extend({
         return value + feature;
       });
       // TODO: make this prettier
-      modalInfo.value = JSON.stringify(data, null, 4);
+      modalInfo.value = data;
     }
 
     function handleModalClose() {
-      modalInfo.value = "";
+      modalInfo.value = [];
     }
 
     return {
       search,
       found,
       activeFeatures,
-      getClass,
       removeActive,
       handleSubmit,
       handlePhoneClick,
