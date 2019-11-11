@@ -77,10 +77,10 @@ export class Phones {
 
   getFeatureset(phone: string) {
     const data = this.getData();
-
     return data[phone];
   }
 
+  // available so that we can do a null check
   private getData() {
     const { data } = this;
     if (data === null) {
